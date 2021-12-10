@@ -34,7 +34,9 @@ final float sizeOfInputArea = DPIofYourDeviceScreen*1; //aka, 1.0 inches square!
 PImage watch;
 
 Map<String, String> dictionary = new HashMap<>();
+Map<String, String> mispelledDictionary = new HashMap<>();
 Trie trie;
+Trie mispelledTrie;
 List<String> searchedWords = new ArrayList<String>();
 ArrayList<Button> wordButtons = new ArrayList<Button>();
 Keyboard keyboard;
@@ -59,7 +61,22 @@ void setup()
     dictionary.put(word, num);
     words.add(word);
   }
+  
+  String[] mispelledLines = loadStrings("ngrams/spell-errors.txt");
+  List<String> mWords = new ArrayList<String>();
+  for (int i = 0 ; i < mispelledLines.length; i++) {
+    String num = mispelledLines[i].replaceAll("((\\b\\w+\\b)(?!:))", "").replaceAll("[^a-z]", "");
+    String wordsWCommas = mispelledLines[i].replaceAll("((\\b\\w+\\b)(?=:)):", "");
+    String[] wordsWOCommas = wordsWCommas.split(",");
+    for (String w : wordsWOCommas) {
+      w = w.replaceAll("[^a-zA-Z]", "");
+      mispelledDictionary.put(w, num); 
+      mWords.add(w);
+    }
+  }
+  
   trie = new Trie(words);
+  mispelledTrie = new Trie(mWords);
   keyboard = new Keyboard(round(width/2-sizeOfInputArea/2), round(height/2+sizeOfInputArea/2 - 90), sizeOfInputArea);
 }
 
@@ -78,7 +95,14 @@ List<String> searchDictionary(String text) {
         return lhs.numOccurances > rhs.numOccurances ? -1 : (lhs.numOccurances < rhs.numOccurances) ? 1 : 0;
     }
   });
+  
+  List<String> mispelledWords = mispelledTrie.suggest(text);
   words = new ArrayList<String>();
+  if(mispelledWords.size() <= 2 || wordsAndNums.size() == 0) {
+    for (String w : mispelledWords) {
+      words.add(mispelledDictionary.get(w));   
+    } 
+  }
   for (DictionaryVal val : wordsAndNums) {
     words.add(val.word);
   }
@@ -136,7 +160,7 @@ void draw()
     text("NEXT > ", 650, 650); //draw next label
     
     String[] words = currentTyped.split(" ");
-    if(words.length > 0 && currentTyped != "" && currentTyped.substring(currentTyped.length() - 1) != " ") {
+    if(words.length > 0) {
       searchedWords = searchDictionary(words[words.length - 1]);
     } else {
       searchedWords = searchDictionary("");
