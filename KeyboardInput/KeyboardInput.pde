@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.Arrays;
 import java.util.Random;
 
+
 public class DictionaryVal {
   String word;
   int numOccurances;
@@ -36,6 +37,7 @@ PImage watch;
 Map<String, String> dictionary = new HashMap<>();
 Trie trie;
 List<String> searchedWords = new ArrayList<String>();
+List<String> forms = new ArrayList<String>();
 ArrayList<Button> wordButtons = new ArrayList<Button>();
 Keyboard keyboard;
 
@@ -87,8 +89,19 @@ List<String> searchDictionary(String text) {
   } else {
     return words;
   }
-  
 }
+
+boolean isSingular(String word)
+{
+  word = word.toLowerCase();
+  if (word.length() <= 0) return false;
+  if (word.charAt(word.length()-1) != 's') return true;
+  if (word.length() >= 2 && word.charAt(word.length()-2) == 's')
+    return true;  // word ends in -ss
+  return false;  // word is not irregular, and ends in -s but not -ss
+}
+
+
 
 
 //You can modify anything in here. This is just a basic implementation.
@@ -138,6 +151,7 @@ void draw()
     String[] words = currentTyped.split(" ");
     if(words.length > 0 && currentTyped != "" && currentTyped.substring(currentTyped.length() - 1) != " ") {
       searchedWords = searchDictionary(words[words.length - 1]);
+      // forms = getVariations(words[words.length - 1]);
     } else {
       searchedWords = searchDictionary("");
     }
@@ -159,9 +173,28 @@ ArrayList<Button> wordsToButtons(int x, int y) {
   }
   return bs;
 }
-
+ArrayList<Button> wordsToButtonsBottomUp(int x, int y) {
+  int topX = x;
+  int topY = y;
+  int keyHeight = 18;
+  ArrayList<Button> bs = new ArrayList<Button>();
+  for (String s : searchedWords) {
+    int keyWidth = s.length() * 12;
+    Button b = new Button(topX, topY, keyWidth, keyHeight, s, 12, 0, 200, 400);
+    topY = topY - keyHeight;
+    bs.add(b);
+  }
+  //for (String s : forms) {
+  //  int keyWidth = s.length() * 12;
+  //  Button b = new Button(topX + 150, topY, keyWidth, keyHeight, s, 12, 0, 200, 400);
+  //  topY = topY - keyHeight;
+  //  bs.add(b);
+  //}
+  return bs;
+}
 void drawSuggested() {
-  wordButtons = wordsToButtons(round(width/2-sizeOfInputArea/2), round(height/2-sizeOfInputArea/2));
+  //wordButtons = wordsToButtons(round(width/2-sizeOfInputArea/2), round(height/2-sizeOfInputArea/2));
+  wordButtons = wordsToButtonsBottomUp(round(width/2-sizeOfInputArea/2), round(height/2-20));
   for (Button b : wordButtons) {
     if(mouseX >= b.xPos && mouseX <= (b.xPos + b.width) &&
          mouseY >= b.yPos && mouseY <= (b.yPos + b.height)) {
@@ -172,9 +205,10 @@ void drawSuggested() {
         rect(b.xPos, b.yPos, b.width, b.height);
       }
       textSize(b.textSize);
+      // textAlign(CENTER);
         
       fill(b.textColor);
-      text(b.text, b.xPos, b.yPos+(b.height/2));
+      text(b.text, b.xPos, b.yPos+(b.height/2 + 1));
   }
 }
 
