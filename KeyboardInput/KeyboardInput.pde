@@ -127,10 +127,18 @@ void draw()
     text("Phrase " + (currTrialNum+1) + " of " + totalTrialNum, 70, 50); //draw the trial count
     fill(128);
     text("Target:   " + currentPhrase, 70, 100); //draw the target string
-    text("Entered:  " + currentTyped +"|", 70, 140); //draw what the user has entered thus far 
+    text("Entered:  " , 70, 140); //draw what the user has entered thus far 
+    fill(50,200,50);
+    text(currentTyped +"|", 120, 140); //draw what the user has entered thus far 
     
     //draw very basic next button
+    if (computeLevenshteinDistance(currentTyped.trim(), currentPhrase.trim())>1){
+    
     fill(255, 0, 0);
+    }
+    else{
+    fill(0, 255, 0);
+    }
     rect(600, 600, 200, 200); //draw next button
     fill(255);
     text("NEXT > ", 650, 650); //draw next label
