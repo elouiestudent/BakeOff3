@@ -128,7 +128,14 @@ void draw()
     fill(128);
     text("Target:   " + currentPhrase, 70, 100); //draw the target string
     text("Entered:  " , 70, 140); //draw what the user has entered thus far 
+    if (computeLevenshteinDistance(currentTyped.trim(), currentPhrase.trim())>1){
+    
+    fill(255, 0, 0);
+    }
+    else{
     fill(50,200,50);
+    }
+    
     text(currentTyped +"|", 120, 140); //draw what the user has entered thus far 
     
     //draw very basic next button
