@@ -153,7 +153,7 @@ ArrayList<Button> wordsToButtons(int x, int y) {
   ArrayList<Button> bs = new ArrayList<Button>();
   for (String s : searchedWords) {
     int keyWidth = s.length() * 12;
-    Button b = new Button(topX, topY, keyWidth, keyHeight, s, 12, 0, 200, 400);
+    Button b = new Button(topX, topY, keyWidth, keyHeight, s, 12, 0, 200, color(255, 255, 0));
     topY = topY + keyHeight;
     bs.add(b);
   }

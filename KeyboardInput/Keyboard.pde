@@ -16,13 +16,13 @@ public class Button {
   int textSize;
   int textColor;
   int buttonColor;
-  int hoverColor;
+  color hoverColor;
   int spacer = 5;
   boolean hover = false;
   
   
   public Button(float xPos, float yPos, int width, int height, String text, int textSize, int textColor, 
-    int buttonColor, int hoverColor) {
+    int buttonColor, color hoverColor) {
     this.xPos = xPos;
     this.yPos = yPos;
     this.width = width;
@@ -77,7 +77,7 @@ public class Keyboard {
         topY = topY + keyHeight + yMargin;
         currKeyLevel = k.level;
       }
-      Button b = new Button(topX, topY, keyWidths[currKeyLevel - 1], keyHeight, k.letter, 12, 0, 200, 400);
+      Button b = new Button(topX, topY, keyWidths[currKeyLevel - 1], keyHeight, k.letter, 12, 0, 200, color(255, 255, 0));
       k.button = b;
       topX = topX + keyWidths[currKeyLevel - 1] + levels[currKeyLevel - 1];
     }
@@ -116,7 +116,7 @@ public class Keyboard {
       
       if (c == k && mouseX >= borderX && mouseY >= borderY - yMargin && mouseX <= bottomX && mouseY <= bottomY) {
         b.hover = true;
-        fill(0, 100);
+        fill(b.hoverColor, 100);
         rect(b.xPos - levels[c.level - 1], b.yPos - yMargin, b.width + 2 * levels[c.level - 1], b.height + 2 * yMargin);
       }
     }
