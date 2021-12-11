@@ -81,7 +81,7 @@ void setup()
   
   trie = new Trie(words);
   misspelledTrie = new Trie(mWords);
-  keyboard = new Keyboard(round(width/2-sizeOfInputArea/2), round(height/2+sizeOfInputArea/2 - 90), sizeOfInputArea);
+  keyboard = new Keyboard(round(width/2-sizeOfInputArea/2), round(height/2+sizeOfInputArea/2 - 102), round(width/2+sizeOfInputArea/2), round(height/2+sizeOfInputArea/2), sizeOfInputArea);
 }
 
 List<String> searchDictionary(String text) {
@@ -204,7 +204,7 @@ ArrayList<Button> wordsToButtons(int x, int y) {
   for (int i = searchedWords.size() - 1; i > -1; i--) {
     String s = searchedWords.get(i);
     int keyWidth = s.length() * 12;
-    Button b = new Button(topX, topY, keyWidth, keyHeight, s, 12, 0, 200, 400);
+    Button b = new Button(topX, topY, keyWidth, keyHeight, s, 12, 0, 200, color(255, 255, 0));
     topY = topY + keyHeight;
     bs.add(b);
   }
@@ -279,9 +279,21 @@ void mousePressed()
     }
   } else if (letter=="_") { //if underscore, consider that a space bar
     currentTyped+=" ";
-  } else if (letter=="<" && currentTyped != "") { //if `, treat that as a delete command
+  } else if (letter=="<" && currentTyped.length() > 0) { //if `, treat that as a delete command
     currentTyped = currentTyped.substring(0, currentTyped.length()-1);
-  } else if (letter != "<") { //if not any of the above cases, add the current letter to the typed string
+  } else if (letter=="<<" && currentTyped.length() > 0) {
+    int index = 0;
+    boolean c = false;
+    for (int i = currentTyped.length() - 1; i > -1; i--) {
+      if (currentTyped.charAt(i) != ' ') {
+        c = true;
+      } else if (currentTyped.charAt(i) == ' ' && c) {
+        index = i;
+        break;
+      }
+    }
+    currentTyped = currentTyped.substring(0, index);
+  } else if (letter != "<" && letter != "<<") { //if not any of the above cases, add the current letter to the typed string
     currentTyped+=letter;
   }
   //You are allowed to have a next button outside the 1" area
