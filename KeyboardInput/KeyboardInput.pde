@@ -189,7 +189,8 @@ ArrayList<Button> wordsToButtons(int x, int y) {
   int topY = y;
   int keyHeight = 18;
   ArrayList<Button> bs = new ArrayList<Button>();
-  for (String s : searchedWords) {
+  for (int i = searchedWords.size() - 1; i > -1; i--) {
+    String s = searchedWords.get(i);
     int keyWidth = s.length() * 12;
     Button b = new Button(topX, topY, keyWidth, keyHeight, s, 12, 0, 200, 400);
     topY = topY + keyHeight;
@@ -202,10 +203,11 @@ ArrayList<Button> wordsToButtonsBottomUp(int x, int y) {
   int topY = y;
   int keyHeight = 18;
   ArrayList<Button> bs = new ArrayList<Button>();
-  for (String s : searchedWords) {
+  for (int i = searchedWords.size() - 1; i > -1; i--) {
+    String s = searchedWords.get(i);
     int keyWidth = s.length() * 12;
     Button b = new Button(topX, topY, keyWidth, keyHeight, s, 12, 0, 200, 400);
-    topY = topY - keyHeight;
+    topY = topY + keyHeight;
     bs.add(b);
   }
   //for (String s : forms) {
@@ -217,8 +219,7 @@ ArrayList<Button> wordsToButtonsBottomUp(int x, int y) {
   return bs;
 }
 void drawSuggested() {
-  //wordButtons = wordsToButtons(round(width/2-sizeOfInputArea/2), round(height/2-sizeOfInputArea/2));
-  wordButtons = wordsToButtonsBottomUp(round(width/2-sizeOfInputArea/2), round(height/2-20));
+  wordButtons = wordsToButtons(round(width/2-sizeOfInputArea/2), round(height/2-sizeOfInputArea/2));
   for (Button b : wordButtons) {
     if(mouseX >= b.xPos && mouseX <= (b.xPos + b.width) &&
          mouseY >= b.yPos && mouseY <= (b.yPos + b.height)) {
