@@ -31,6 +31,8 @@ String currentTyped = ""; //what the user has typed so far
 final int DPIofYourDeviceScreen = 200; //you will need to look up the DPI or PPI of your device to make sure you get the right scale!!
 //http://en.wikipedia.org/wiki/List_of_displays_by_pixel_density
 final float sizeOfInputArea = DPIofYourDeviceScreen*1; //aka, 1.0 inches square!
+int nextButtonHeight = 20;
+int nextButtonWidth = 50;
 PImage watch;
 
 Map<String, String> dictionary = new HashMap<>();
@@ -128,27 +130,22 @@ void draw()
     fill(128);
     text("Target:   " + currentPhrase, 70, 100); //draw the target string
     text("Entered:  " , 70, 140); //draw what the user has entered thus far 
-    if (computeLevenshteinDistance(currentTyped.trim(), currentPhrase.trim())>1){
-    
-    fill(255, 0, 0);
+    if (computeLevenshteinDistance(currentTyped.trim(), currentPhrase.trim())<=0) {
+      fill(50,200,50);
     }
-    else{
-    fill(50,200,50);
-    }
-    
+
     text(currentTyped +"|", 120, 140); //draw what the user has entered thus far 
     
     //draw very basic next button
-    if (computeLevenshteinDistance(currentTyped.trim(), currentPhrase.trim())>1){
-    
-    fill(255, 0, 0);
+    if (computeLevenshteinDistance(currentTyped.trim(), currentPhrase.trim())>0) {
+      fill(255, 0, 0);
     }
     else{
-    fill(0, 255, 0);
+      fill(0, 255, 0);
     }
-    rect(600, 600, 200, 200); //draw next button
+    rect(round(width/2)+sizeOfInputArea/2+50, round(height/2-sizeOfInputArea/2), 200, 200); //draw next button
     fill(255);
-    text("NEXT > ", 650, 650); //draw next label
+    text("NEXT > ", round(width/2)+sizeOfInputArea/2+50 + 5, round(height/2-sizeOfInputArea/2+15)); //draw next label
     
     String[] words = currentTyped.split(" ");
     if(words.length > 0 && currentTyped != "" && currentTyped.substring(currentTyped.length() - 1) != " ") {
@@ -229,7 +226,7 @@ void mousePressed()
     currentTyped+=letter;
   }
   //You are allowed to have a next button outside the 1" area
-  if (didMouseClick(600, 600, 200, 200)) //check if click is in next button
+  if (didMouseClick(round(width/2)+sizeOfInputArea/2+50, round(height/2-sizeOfInputArea/2), 200, 200)) //check if click is in next button
   {
     nextTrial(); //if so, advance to next trial
   }
