@@ -34,9 +34,9 @@ final float sizeOfInputArea = DPIofYourDeviceScreen*1; //aka, 1.0 inches square!
 PImage watch;
 
 Map<String, String> dictionary = new HashMap<>();
-Map<String, String> mispelledDictionary = new HashMap<>();
+Map<String, String> misspelledDictionary = new HashMap<>();
 Trie trie;
-Trie mispelledTrie;
+Trie misspelledTrie;
 List<String> searchedWords = new ArrayList<String>();
 ArrayList<Button> wordButtons = new ArrayList<Button>();
 Keyboard keyboard;
@@ -62,21 +62,21 @@ void setup()
     words.add(word);
   }
   
-  String[] mispelledLines = loadStrings("ngrams/spell-errors.txt");
+  String[] misspelledLines = loadStrings("ngrams/spell-errors.txt");
   List<String> mWords = new ArrayList<String>();
-  for (int i = 0 ; i < mispelledLines.length; i++) {
-    String num = mispelledLines[i].replaceAll("((\\b\\w+\\b)(?!:))", "").replaceAll("[^a-z]", "");
-    String wordsWCommas = mispelledLines[i].replaceAll("((\\b\\w+\\b)(?=:)):", "");
+  for (int i = 0 ; i < misspelledLines.length; i++) {
+    String num = misspelledLines[i].replaceAll("((\\b\\w+\\b)(?!:))", "").replaceAll("[^a-z]", "");
+    String wordsWCommas = misspelledLines[i].replaceAll("((\\b\\w+\\b)(?=:)):", "");
     String[] wordsWOCommas = wordsWCommas.split(",");
     for (String w : wordsWOCommas) {
       w = w.replaceAll("[^a-zA-Z]", "");
-      mispelledDictionary.put(w, num); 
+      misspelledDictionary.put(w, num); 
       mWords.add(w);
     }
   }
   
   trie = new Trie(words);
-  mispelledTrie = new Trie(mWords);
+  misspelledTrie = new Trie(mWords);
   keyboard = new Keyboard(round(width/2-sizeOfInputArea/2), round(height/2+sizeOfInputArea/2 - 90), sizeOfInputArea);
 }
 
@@ -96,11 +96,11 @@ List<String> searchDictionary(String text) {
     }
   });
   
-  List<String> mispelledWords = mispelledTrie.suggest(text);
+  List<String> misspelledWords = misspelledTrie.suggest(text);
   words = new ArrayList<String>();
-  if(mispelledWords.size() <= 2 || wordsAndNums.size() == 0) {
-    for (String w : mispelledWords) {
-      words.add(mispelledDictionary.get(w));   
+  if(misspelledWords.size() <= 2 || wordsAndNums.size() == 0) {
+    for (String w : misspelledWords) {
+      words.add(misspelledDictionary.get(w));   
     } 
   }
   for (DictionaryVal val : wordsAndNums) {
