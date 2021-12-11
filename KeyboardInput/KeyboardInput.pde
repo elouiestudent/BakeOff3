@@ -35,7 +35,9 @@ final float sizeOfInputArea = DPIofYourDeviceScreen*1; //aka, 1.0 inches square!
 PImage watch;
 
 Map<String, String> dictionary = new HashMap<>();
+Map<String, String> misspelledDictionary = new HashMap<>();
 Trie trie;
+Trie misspelledTrie;
 List<String> searchedWords = new ArrayList<String>();
 List<String> forms = new ArrayList<String>();
 ArrayList<Button> wordButtons = new ArrayList<Button>();
@@ -61,7 +63,22 @@ void setup()
     dictionary.put(word, num);
     words.add(word);
   }
+  
+  String[] misspelledLines = loadStrings("ngrams/spell-errors.txt");
+  List<String> mWords = new ArrayList<String>();
+  for (int i = 0 ; i < misspelledLines.length; i++) {
+    String num = misspelledLines[i].replaceAll("((\\b\\w+\\b)(?!:))", "").replaceAll("[^a-z]", "");
+    String wordsWCommas = misspelledLines[i].replaceAll("((\\b\\w+\\b)(?=:)):", "");
+    String[] wordsWOCommas = wordsWCommas.split(",");
+    for (String w : wordsWOCommas) {
+      w = w.replaceAll("[^a-zA-Z]", "");
+      misspelledDictionary.put(w, num); 
+      mWords.add(w);
+    }
+  }
+  
   trie = new Trie(words);
+  misspelledTrie = new Trie(mWords);
   keyboard = new Keyboard(round(width/2-sizeOfInputArea/2), round(height/2+sizeOfInputArea/2 - 90), sizeOfInputArea);
 }
 
@@ -80,7 +97,14 @@ List<String> searchDictionary(String text) {
         return lhs.numOccurances > rhs.numOccurances ? -1 : (lhs.numOccurances < rhs.numOccurances) ? 1 : 0;
     }
   });
+  
+  List<String> misspelledWords = misspelledTrie.suggest(text);
   words = new ArrayList<String>();
+  if(misspelledWords.size() <= 2 || wordsAndNums.size() == 0) {
+    for (String w : misspelledWords) {
+      words.add(misspelledDictionary.get(w));   
+    } 
+  }
   for (DictionaryVal val : wordsAndNums) {
     words.add(val.word);
   }
@@ -149,7 +173,7 @@ void draw()
     text("NEXT > ", 650, 650); //draw next label
     
     String[] words = currentTyped.split(" ");
-    if(words.length > 0 && currentTyped != "" && currentTyped.substring(currentTyped.length() - 1) != " ") {
+    if(words.length > 0) {
       searchedWords = searchDictionary(words[words.length - 1]);
       // forms = getVariations(words[words.length - 1]);
     } else {
