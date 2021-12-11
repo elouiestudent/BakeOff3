@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.Arrays;
 import java.util.Random;
 
+
 public class DictionaryVal {
   String word;
   int numOccurances;
@@ -31,11 +32,17 @@ String currentTyped = ""; //what the user has typed so far
 final int DPIofYourDeviceScreen = 200; //you will need to look up the DPI or PPI of your device to make sure you get the right scale!!
 //http://en.wikipedia.org/wiki/List_of_displays_by_pixel_density
 final float sizeOfInputArea = DPIofYourDeviceScreen*1; //aka, 1.0 inches square!
+int nextButtonHeight = 20;
+int nextButtonWidth = 50;
 PImage watch;
 
+int rowHeight = 20;
 Map<String, String> dictionary = new HashMap<>();
+Map<String, String> misspelledDictionary = new HashMap<>();
 Trie trie;
+Trie misspelledTrie;
 List<String> searchedWords = new ArrayList<String>();
+List<String> forms = new ArrayList<String>();
 ArrayList<Button> wordButtons = new ArrayList<Button>();
 Keyboard keyboard;
 
@@ -59,8 +66,23 @@ void setup()
     dictionary.put(word, num);
     words.add(word);
   }
+  
+  String[] misspelledLines = loadStrings("ngrams/spell-errors.txt");
+  List<String> mWords = new ArrayList<String>();
+  for (int i = 0 ; i < misspelledLines.length; i++) {
+    String num = misspelledLines[i].replaceAll("((\\b\\w+\\b)(?!:))", "").replaceAll("[^a-z]", "");
+    String wordsWCommas = misspelledLines[i].replaceAll("((\\b\\w+\\b)(?=:)):", "");
+    String[] wordsWOCommas = wordsWCommas.split(",");
+    for (String w : wordsWOCommas) {
+      w = w.replaceAll("[^a-zA-Z]", "");
+      misspelledDictionary.put(w, num); 
+      mWords.add(w);
+    }
+  }
+  
   trie = new Trie(words);
-  keyboard = new Keyboard(round(width/2-sizeOfInputArea/2), round(height/2+sizeOfInputArea/2 - 90), sizeOfInputArea);
+  misspelledTrie = new Trie(mWords);
+  keyboard = new Keyboard(round(width/2-sizeOfInputArea/2), round(height/2+sizeOfInputArea/2 - 102), round(width/2+sizeOfInputArea/2), round(height/2+sizeOfInputArea/2), sizeOfInputArea);
 }
 
 List<String> searchDictionary(String text) {
@@ -78,7 +100,14 @@ List<String> searchDictionary(String text) {
         return lhs.numOccurances > rhs.numOccurances ? -1 : (lhs.numOccurances < rhs.numOccurances) ? 1 : 0;
     }
   });
+  
+  List<String> misspelledWords = misspelledTrie.suggest(text);
   words = new ArrayList<String>();
+  if(misspelledWords.size() <= 2 || wordsAndNums.size() == 0) {
+    for (String w : misspelledWords) {
+      words.add(misspelledDictionary.get(w));   
+    } 
+  }
   for (DictionaryVal val : wordsAndNums) {
     words.add(val.word);
   }
@@ -87,7 +116,16 @@ List<String> searchDictionary(String text) {
   } else {
     return words;
   }
-  
+}
+
+boolean isSingular(String word) // not used
+{
+  word = word.toLowerCase();
+  if (word.length() <= 0) return false;
+  if (word.charAt(word.length()-1) != 's') return true;
+  if (word.length() >= 2 && word.charAt(word.length()-2) == 's')
+    return true;  // word ends in -ss
+  return false;  // word is not irregular, and ends in -s but not -ss
 }
 
 
@@ -127,39 +165,72 @@ void draw()
     text("Phrase " + (currTrialNum+1) + " of " + totalTrialNum, 70, 50); //draw the trial count
     fill(128);
     text("Target:   " + currentPhrase, 70, 100); //draw the target string
-    text("Entered:  " + currentTyped +"|", 70, 140); //draw what the user has entered thus far 
+    text("Entered:  " , 70, 140); //draw what the user has entered thus far 
+    if (computeLevenshteinDistance(currentTyped.trim(), currentPhrase.trim())<=0) {
+      fill(50,200,50);
+    }
+
+    text(currentTyped +"|", 120, 140); //draw what the user has entered thus far 
     
     //draw very basic next button
-    fill(255, 0, 0);
-    rect(600, 600, 200, 200); //draw next button
+    if (computeLevenshteinDistance(currentTyped.trim(), currentPhrase.trim())>0) {
+      fill(255, 0, 0);
+    }
+    else{
+      fill(0, 255, 0);
+    }
+    rect(round(width/2)+sizeOfInputArea/2+50, round(height/2-sizeOfInputArea/2), 200, 200); //draw next button
     fill(255);
-    text("NEXT > ", 650, 650); //draw next label
+    text("NEXT > ", round(width/2)+sizeOfInputArea/2+50 + 5, round(height/2-sizeOfInputArea/2+15)); //draw next label
     
     String[] words = currentTyped.split(" ");
-    if(words.length > 0 && currentTyped != "" && currentTyped.substring(currentTyped.length() - 1) != " ") {
+    if(words.length > 0) {
       searchedWords = searchDictionary(words[words.length - 1]);
+      // forms = getVariations(words[words.length - 1]);
     } else {
       searchedWords = searchDictionary("");
     }
     drawSuggested();
+    drawTimer();
     keyboard.drawKeyboard();
   }
 }
+
 
 ArrayList<Button> wordsToButtons(int x, int y) {
   int topX = x;
   int topY = y;
   int keyHeight = 18;
   ArrayList<Button> bs = new ArrayList<Button>();
-  for (String s : searchedWords) {
+  for (int i = searchedWords.size() - 1; i > -1; i--) {
+    String s = searchedWords.get(i);
     int keyWidth = s.length() * 12;
-    Button b = new Button(topX, topY, keyWidth, keyHeight, s, 12, 0, 200, 400);
+    Button b = new Button(topX, topY, keyWidth, keyHeight, s, 12, 0, 200, color(255, 255, 0));
     topY = topY + keyHeight;
     bs.add(b);
   }
   return bs;
 }
-
+ArrayList<Button> wordsToButtonsBottomUp(int x, int y) {
+  int topX = x;
+  int topY = y;
+  int keyHeight = 18;
+  ArrayList<Button> bs = new ArrayList<Button>();
+  for (int i = searchedWords.size() - 1; i > -1; i--) {
+    String s = searchedWords.get(i);
+    int keyWidth = s.length() * 12;
+    Button b = new Button(topX, topY, keyWidth, keyHeight, s, 12, 0, 200, 400);
+    topY = topY + keyHeight;
+    bs.add(b);
+  }
+  //for (String s : forms) {
+  //  int keyWidth = s.length() * 12;
+  //  Button b = new Button(topX + 150, topY, keyWidth, keyHeight, s, 12, 0, 200, 400);
+  //  topY = topY - keyHeight;
+  //  bs.add(b);
+  //}
+  return bs;
+}
 void drawSuggested() {
   wordButtons = wordsToButtons(round(width/2-sizeOfInputArea/2), round(height/2-sizeOfInputArea/2));
   for (Button b : wordButtons) {
@@ -172,12 +243,22 @@ void drawSuggested() {
         rect(b.xPos, b.yPos, b.width, b.height);
       }
       textSize(b.textSize);
+      // textAlign(CENTER);
         
       fill(b.textColor);
-      text(b.text, b.xPos, b.yPos+(b.height/2));
+      text(b.text, b.xPos, b.yPos+(b.height/2 + 1));
   }
 }
 
+
+void drawTimer()
+{
+  fill(255);
+  float time = millis() - startTime;
+  int integer = int(time/1000);
+  int decimal = int(time % 1000 / 100);
+  text("Time: " + integer + "." + decimal + " second", round(width/2), round(height/2-sizeOfInputArea/2 + rowHeight));
+}
 //my terrible implementation you can entirely replace
 boolean didMouseClick(float x, float y, float w, float h) //simple function to do hit testing
 {
@@ -208,13 +289,25 @@ void mousePressed()
     }
   } else if (letter=="_") { //if underscore, consider that a space bar
     currentTyped+=" ";
-  } else if (letter=="<" && currentTyped != "") { //if `, treat that as a delete command
+  } else if (letter=="<" && currentTyped.length() > 0) { //if `, treat that as a delete command
     currentTyped = currentTyped.substring(0, currentTyped.length()-1);
-  } else if (letter != "<") { //if not any of the above cases, add the current letter to the typed string
+  } else if (letter=="<<" && currentTyped.length() > 0) {
+    int index = 0;
+    boolean c = false;
+    for (int i = currentTyped.length() - 1; i > -1; i--) {
+      if (currentTyped.charAt(i) != ' ') {
+        c = true;
+      } else if (currentTyped.charAt(i) == ' ' && c) {
+        index = i;
+        break;
+      }
+    }
+    currentTyped = currentTyped.substring(0, index);
+  } else if (letter != "<" && letter != "<<") { //if not any of the above cases, add the current letter to the typed string
     currentTyped+=letter;
   }
   //You are allowed to have a next button outside the 1" area
-  if (didMouseClick(600, 600, 200, 200)) //check if click is in next button
+  if (didMouseClick(round(width/2)+sizeOfInputArea/2+50, round(height/2-sizeOfInputArea/2), 200, 200)) //check if click is in next button
   {
     nextTrial(); //if so, advance to next trial
   }
