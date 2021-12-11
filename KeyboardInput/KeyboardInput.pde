@@ -36,6 +36,7 @@ int nextButtonHeight = 20;
 int nextButtonWidth = 50;
 PImage watch;
 
+int rowHeight = 20;
 Map<String, String> dictionary = new HashMap<>();
 Map<String, String> misspelledDictionary = new HashMap<>();
 Trie trie;
@@ -117,7 +118,7 @@ List<String> searchDictionary(String text) {
   }
 }
 
-boolean isSingular(String word)
+boolean isSingular(String word) // not used
 {
   word = word.toLowerCase();
   if (word.length() <= 0) return false;
@@ -126,9 +127,6 @@ boolean isSingular(String word)
     return true;  // word ends in -ss
   return false;  // word is not irregular, and ends in -s but not -ss
 }
-
-
-
 
 //You can modify anything in here. This is just a basic implementation.
 void draw()
@@ -192,9 +190,11 @@ void draw()
       searchedWords = searchDictionary("");
     }
     drawSuggested();
+    drawTimer();
     keyboard.drawKeyboard();
   }
 }
+
 
 ArrayList<Button> wordsToButtons(int x, int y) {
   int topX = x;
@@ -204,21 +204,7 @@ ArrayList<Button> wordsToButtons(int x, int y) {
   for (int i = searchedWords.size() - 1; i > -1; i--) {
     String s = searchedWords.get(i);
     int keyWidth = s.length() * 12;
-    Button b = new Button(topX, topY, keyWidth, keyHeight, s, 12, 0, 200, color(255, 255, 0));
-    topY = topY + keyHeight;
-    bs.add(b);
-  }
-  return bs;
-}
-ArrayList<Button> wordsToButtonsBottomUp(int x, int y) {
-  int topX = x;
-  int topY = y;
-  int keyHeight = 18;
-  ArrayList<Button> bs = new ArrayList<Button>();
-  for (int i = searchedWords.size() - 1; i > -1; i--) {
-    String s = searchedWords.get(i);
-    int keyWidth = s.length() * 12;
-    Button b = new Button(topX, topY, keyWidth, keyHeight, s, 12, 0, 200, 400);
+    Button b = new Button(topX, topY, keyWidth, keyHeight, keyWidth, keyHeight, s, 12, 0, 200, color(255, 255, 0));
     topY = topY + keyHeight;
     bs.add(b);
   }
@@ -230,6 +216,28 @@ ArrayList<Button> wordsToButtonsBottomUp(int x, int y) {
   //}
   return bs;
 }
+
+ArrayList<Button> wordsToButtonsBottomUp(int x, int y) {
+  int topX = x;
+  int topY = y;
+  int keyHeight = 18;
+  ArrayList<Button> bs = new ArrayList<Button>();
+  for (int i = searchedWords.size() - 1; i > -1; i--) {
+    String s = searchedWords.get(i);
+    int keyWidth = s.length() * 12;
+    Button b = new Button(topX, topY, keyWidth, keyHeight,keyWidth, keyHeight, s, 12, 0, 200, 400);
+    topY = topY + keyHeight;
+    bs.add(b);
+  }
+  //for (String s : forms) {
+  //  int keyWidth = s.length() * 12;
+  //  Button b = new Button(topX + 150, topY, keyWidth, keyHeight, s, 12, 0, 200, 400);
+  //  topY = topY - keyHeight;
+  //  bs.add(b);
+  //}
+  return bs;
+}
+
 void drawSuggested() {
   wordButtons = wordsToButtons(round(width/2-sizeOfInputArea/2), round(height/2-sizeOfInputArea/2));
   for (Button b : wordButtons) {
@@ -249,6 +257,14 @@ void drawSuggested() {
   }
 }
 
+
+void drawTimer()
+{
+  fill(255);
+  int timeSpent = int((millis() - startTime)/1000);
+  int DecimalPoint = int((millis() - startTime) % 1000 / 100);
+  text("Time: " + timeSpent + "." + DecimalPoint + " second", round(width/2), round(height/2-sizeOfInputArea/2 + rowHeight));
+}
 //my terrible implementation you can entirely replace
 boolean didMouseClick(float x, float y, float w, float h) //simple function to do hit testing
 {

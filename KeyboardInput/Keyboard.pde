@@ -7,11 +7,16 @@ import java.util.Comparator;
 import java.util.Arrays;
 import java.util.Random;
 
+
+int hoverEnlarge = 4;
+
 public class Button {
   float xPos;
   float yPos;
   int width;
   int height;
+  int hoverWidth;
+  int hoverHeight;
   String text;
   int textSize;
   int textColor;
@@ -21,12 +26,14 @@ public class Button {
   boolean hover = false;
   
   
-  public Button(float xPos, float yPos, int width, int height, String text, int textSize, int textColor, 
+  public Button(float xPos, float yPos, int width, int height, int hoverWidth, int hoverHeight, String text, int textSize, int textColor, 
     int buttonColor, color hoverColor) {
     this.xPos = xPos;
     this.yPos = yPos;
     this.width = width;
     this.height = height;
+    this.hoverWidth = hoverWidth;
+    this.hoverHeight = hoverHeight;
     this.text = text;
     this.textSize = textSize;
     this.textColor = textColor;
@@ -54,6 +61,7 @@ public class Keyboard {
                       new Key("_", 4), new Key("<", 4), new Key("<<", 4));
   float[] levels;
   int[] keyWidths = new int[]{15, 15, 15, 45};
+  int[] keyHoverWidths = new int[]{15 + hoverEnlarge, 15 + hoverEnlarge, 15 + hoverEnlarge, 45 + hoverEnlarge};
   int yMargin = 8;
   int borderX;
   int borderY;
@@ -68,6 +76,7 @@ public class Keyboard {
     borderX = x;
     borderY = y;
     int keyHeight = 18;
+    int keyHoverHeight = keyHeight + hoverEnlarge;
     int currKeyLevel = 1;
     levels = new float[]{(inputWidth - 10 * keyWidths[0]) / 11, (inputWidth - 9 * keyWidths[1]) / 10, (inputWidth - 7 * keyWidths[2]) / 8, (inputWidth - 3 * keyWidths[3]) / 4};
     topX = topX + levels[currKeyLevel - 1];
@@ -77,7 +86,7 @@ public class Keyboard {
         topY = topY + keyHeight + yMargin;
         currKeyLevel = k.level;
       }
-      Button b = new Button(topX, topY, keyWidths[currKeyLevel - 1], keyHeight, k.letter, 12, 0, 200, color(255, 255, 0));
+      Button b = new Button(topX, topY, keyWidths[currKeyLevel - 1], keyHeight, keyHoverWidths[currKeyLevel - 1], keyHoverHeight, k.letter, 12, 0, 200, color(255, 255, 0));
       k.button = b;
       topX = topX + keyWidths[currKeyLevel - 1] + levels[currKeyLevel - 1];
     }
@@ -106,18 +115,30 @@ public class Keyboard {
     for (Key k : keyboard) {
       Button b = k.button;
       b.hover = false;
-        
-      fill(b.buttonColor);
+      
+      fill(b.buttonColor);      
       rect(b.xPos, b.yPos, b.width, b.height);
       textSize(b.textSize);
-        
       fill(b.textColor);
       text(b.text, b.xPos+(b.width/3), b.yPos+(2*b.height/3));
       
       if (c == k && mouseX >= borderX && mouseY >= borderY - yMargin && mouseX <= bottomX && mouseY <= bottomY) {
+        fill(b.buttonColor);
+        rect(b.xPos-hoverEnlarge/2, b.yPos - hoverEnlarge/2, b.hoverWidth, b.hoverHeight);
+        textSize(b.textSize);
+        fill(b.textColor);
+        text(b.text, b.xPos+(b.width/3), b.yPos+(2*b.height/3));
         b.hover = true;
         fill(b.hoverColor, 100);
         rect(b.xPos - levels[c.level - 1], b.yPos - yMargin, b.width + 2 * levels[c.level - 1], b.height + 2 * yMargin);
+      }
+      else 
+      {
+        fill(b.buttonColor);      
+        rect(b.xPos, b.yPos, b.width, b.height);
+        textSize(b.textSize);
+        fill(b.textColor);
+        text(b.text, b.xPos+(b.width/3), b.yPos+(2*b.height/3));
       }
     }
   }
