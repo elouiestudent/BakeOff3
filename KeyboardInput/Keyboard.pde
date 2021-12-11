@@ -7,26 +7,33 @@ import java.util.Comparator;
 import java.util.Arrays;
 import java.util.Random;
 
+
+int hoverEnlarge = 4;
+
 public class Button {
-  int xPos;
-  int yPos;
+  float xPos;
+  float yPos;
   int width;
   int height;
+  int hoverWidth;
+  int hoverHeight;
   String text;
   int textSize;
   int textColor;
   int buttonColor;
-  int hoverColor;
+  color hoverColor;
   int spacer = 5;
   boolean hover = false;
   
   
-  public Button(int xPos, int yPos, int width, int height, String text, int textSize, int textColor, 
-    int buttonColor, int hoverColor) {
+  public Button(float xPos, float yPos, int width, int height, int hoverWidth, int hoverHeight, String text, int textSize, int textColor, 
+    int buttonColor, color hoverColor) {
     this.xPos = xPos;
     this.yPos = yPos;
     this.width = width;
     this.height = height;
+    this.hoverWidth = hoverWidth;
+    this.hoverHeight = hoverHeight;
     this.text = text;
     this.textSize = textSize;
     this.textColor = textColor;
@@ -48,38 +55,41 @@ public class Key {
 
 public class Keyboard {
   List<Key> keyboard = List.of(
-                      new Key("q", 1), new Key("w", 1), new Key("e", 1), new Key("r", 1), new Key("t", 1), new Key("y", 1), new Key("u", 1), new Key("o", 1), new Key("p", 1), new Key("i", 1),
+                      new Key("q", 1), new Key("w", 1), new Key("e", 1), new Key("r", 1), new Key("t", 1), new Key("y", 1), new Key("u", 1), new Key("i", 1), new Key("o", 1), new Key("p", 1),
                       new Key("a", 2), new Key("s", 2), new Key("d", 2), new Key("f", 2), new Key("g", 2), new Key("h", 2), new Key("j", 2), new Key("k", 2), new Key("l", 2), 
-                      new Key("z", 3), new Key("x", 3), new Key("c", 3), new Key("v", 3), new Key("b", 3), new Key("n", 3), new Key("m", 3), new Key("_", 3), new Key("<", 3));
-  int keyWidth = 15;
-  int topLevelIncrement;
-  int otherLevelIncrement;
-  int yMargin = 10;
+                      new Key("z", 3), new Key("x", 3), new Key("c", 3), new Key("v", 3), new Key("b", 3), new Key("n", 3), new Key("m", 3), 
+                      new Key("_", 4), new Key("<", 4), new Key("<<", 4));
+  float[] levels;
+  int[] keyWidths = new int[]{15, 15, 15, 45};
+  int[] keyHoverWidths = new int[]{15 + hoverEnlarge, 15 + hoverEnlarge, 15 + hoverEnlarge, 45 + hoverEnlarge};
+
+  int yMargin = 8;
   int borderX;
   int borderY;
+  int bottomX;
+  int bottomY;
   
-  public Keyboard(int x, int y, float inputWidth) {
-    int topX = x;
-    int topY = y;
-    borderX = topX;
-    borderY = topY;
+  public Keyboard(int x, int y, int botx, int boty, float inputWidth) {
+    float topX = x;
+    float topY = y;
+    bottomX = botx;
+    bottomY = boty;
+    borderX = x;
+    borderY = y;
     int keyHeight = 18;
+    int keyHoverHeight = keyHeight + hoverEnlarge;
     int currKeyLevel = 1;
-    topLevelIncrement = int(inputWidth / 10) - keyWidth;
-    otherLevelIncrement = int(inputWidth / 9) - keyWidth;
-    topX = topX + topLevelIncrement;
+    levels = new float[]{(inputWidth - 10 * keyWidths[0]) / 11, (inputWidth - 9 * keyWidths[1]) / 10, (inputWidth - 7 * keyWidths[2]) / 8, (inputWidth - 3 * keyWidths[3]) / 4};
+    topX = topX + levels[currKeyLevel - 1];
     for (Key k : keyboard) {
       if(k.level != currKeyLevel) {
-        topX = x + otherLevelIncrement;
+        topX = x + levels[k.level - 1];
         topY = topY + keyHeight + yMargin;
         currKeyLevel = k.level;
       }
-      Button b = new Button(topX, topY, keyWidth, keyHeight, k.letter, 12, 0, 200, 400);
+      Button b = new Button(topX, topY, keyWidths[currKeyLevel - 1], keyHeight, keyHoverWidths[currKeyLevel - 1], keyHoverHeight, k.letter, 12, 0, 200, color(255, 255, 0));
       k.button = b;
-      if (currKeyLevel == 1)
-        topX = topX + keyWidth + topLevelIncrement;
-      else
-        topX = topX + keyWidth + otherLevelIncrement;
+      topX = topX + keyWidths[currKeyLevel - 1] + levels[currKeyLevel - 1];
     }
   }
 
@@ -105,30 +115,31 @@ public class Keyboard {
     }
     for (Key k : keyboard) {
       Button b = k.button;
-      //if(mouseX >= b.xPos && mouseX <= (b.xPos + b.width) &&
-      //   mouseY >= b.yPos && mouseY <= (b.yPos + b.height)) {
-      //  fill(b.hoverColor);
-      //  rect(b.xPos, b.yPos, b.width, b.height);
       b.hover = false;
-        
-      fill(b.buttonColor);
+      
+      fill(b.buttonColor);      
       rect(b.xPos, b.yPos, b.width, b.height);
       textSize(b.textSize);
-        
       fill(b.textColor);
       text(b.text, b.xPos+(b.width/3), b.yPos+(2*b.height/3));
       
-      //System.out.println(topX);
-      //System.out.println(topY);
-      //System.out.println(mouseX);
-      //System.out.println(mouseY);
-      if (c == k && mouseX > borderX && mouseY > borderY - yMargin) {
+      if (c == k && mouseX >= borderX && mouseY >= borderY - yMargin && mouseX <= bottomX && mouseY <= bottomY) {
+        fill(b.buttonColor);
+        rect(b.xPos-hoverEnlarge/2, b.yPos - hoverEnlarge/2, b.hoverWidth, b.hoverHeight);
+        textSize(b.textSize);
+        fill(b.textColor);
+        text(b.text, b.xPos+(b.width/3), b.yPos+(2*b.height/3));
         b.hover = true;
-        fill(0, 100);
-        if (k.level == 1)
-          rect(b.xPos - topLevelIncrement, b.yPos - yMargin, b.width + 2 * topLevelIncrement, b.height + 2 * yMargin);
-        else
-          rect(b.xPos - otherLevelIncrement, b.yPos - yMargin, b.width + 2 * otherLevelIncrement, b.height + 2 * yMargin);
+        fill(b.hoverColor, 100);
+        rect(b.xPos - levels[c.level - 1], b.yPos - yMargin, b.width + 2 * levels[c.level - 1], b.height + 2 * yMargin);
+      }
+      else 
+      {
+        fill(b.buttonColor);      
+        rect(b.xPos, b.yPos, b.width, b.height);
+        textSize(b.textSize);
+        fill(b.textColor);
+        text(b.text, b.xPos+(b.width/3), b.yPos+(2*b.height/3));
       }
     }
   }
